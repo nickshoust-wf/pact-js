@@ -78,6 +78,7 @@
   },
   "dependencies": {
     "es6-promise": "3.2.1",
+    "ffi": "^2.1.0",
     "lodash.isfunction": "3.0.8",
     "lodash.isnil": "4.0.0",
     "lodash.isundefined": "3.0.1",
