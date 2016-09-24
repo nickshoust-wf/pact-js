@@ -134,6 +134,69 @@ describe('Integration', () => {
       })
     })
 
+    context('with two requests to same URL differed by query string', () => {
+      beforeEach(done => {
+        let interaction1 = provider.addInteraction({
+          state: 'i have a list of projects',
+          uponReceiving: 'a request for projects',
+          withRequest: {
+            method: 'get',
+            path: '/projects',
+            headers: { 'Accept': 'application/json' }
+          },
+          willRespondWith: {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: EXPECTED_BODY
+          }
+        })
+
+        let interaction2 = provider.addInteraction({
+          state: 'i have a list of projects starting today',
+          uponReceiving: 'a request for projects starting today',
+          withRequest: {
+            method: 'get',
+            path: '/projects',
+            query: { from: 'today' },
+            headers: { 'Accept': 'application/json' }
+          },
+          willRespondWith: {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: EXPECTED_BODY
+          }
+        })
+
+        Promise.all([interaction1, interaction2]).then(() => done())
+      })
+
+      // once test is run, write pact and remove interactions
+      afterEach((done) => {
+        provider.finalize().then(() => done())
+      })
+
+      // execute your assertions
+      it('successfully verifies', (done) => {
+
+        let promiseResults = []
+
+        const verificationPromise =
+            request.get(`${PROVIDER_URL}/projects`)
+              .set({ 'Accept': 'application/json' })
+              .then((response) => {
+                promiseResults.push(response)
+                return request.get(`${PROVIDER_URL}/projects?from=today`).set({ 'Accept': 'application/json' })
+              })
+              .then((response) => {
+                promiseResults.push(response)
+                return provider.verify(promiseResults)
+              })
+
+        let strExpectedBody = JSON.stringify(EXPECTED_BODY)
+        expect(verificationPromise).to.eventually.eql([strExpectedBody, strExpectedBody]).notify(done)
+      })
+    })
+
     context('with a single request and matchers', () => {
 
       // add interactions, as many as needed
