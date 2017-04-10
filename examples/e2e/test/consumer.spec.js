@@ -95,7 +95,7 @@ describe('Pact', () => {
           uponReceiving: 'a request for all animals',
           withRequest: {
             method: 'GET',
-            path: '/animals/available'
+            path: '/animals/available/'
           },
           willRespondWith: {
             status: 200,
